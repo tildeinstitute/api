@@ -9,17 +9,18 @@ import (
 )
 
 func main() {
-	initLogging()
+	logChan := make(chan struct{})
+	initLogging(logChan)
 
 	sigC := make(chan os.Signal, 1)
 	signal.Notify(sigC, os.Interrupt)
-	go func() {
+	go func(chan<- struct{}) {
 		for range sigC {
 			log.Printf("^C Caught. Shutting down ...")
 			logChan <- struct{}{}
 			os.Exit(1)
 		}
-	}()
+	}(logChan)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", validateRequest)

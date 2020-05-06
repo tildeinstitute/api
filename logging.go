@@ -7,9 +7,7 @@ import (
 	"os"
 )
 
-var logChan = make(chan struct{})
-
-func initLogging() {
+func initLogging(logChan <-chan struct{}) {
 	logfile, err := os.OpenFile("api.log", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil {
 		log.SetOutput(os.Stderr)
@@ -20,6 +18,7 @@ func initLogging() {
 	go func(*os.File) {
 		<-logChan
 		log.Printf("Closing log file ...")
+
 		err := logfile.Close()
 		if err != nil {
 			log.SetOutput(os.Stderr)

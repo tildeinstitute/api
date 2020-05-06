@@ -9,7 +9,7 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", methodHop)
+	mux.HandleFunc("/", validateRequest)
 
 	server := &http.Server{
 		Addr:         ":9999",

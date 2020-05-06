@@ -19,8 +19,7 @@ func initLogging(logChan <-chan struct{}) {
 		<-logChan
 		log.Printf("Closing log file ...")
 
-		err := logfile.Close()
-		if err != nil {
+		if err := logfile.Close(); err != nil {
 			log.SetOutput(os.Stderr)
 			log.Printf("Error closing log file: %s", err.Error())
 		}

@@ -3,12 +3,25 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"time"
 )
 
 func main() {
-	mux := http.NewServeMux()
+	initLogging()
 
+	sigC := make(chan os.Signal, 1)
+	signal.Notify(sigC, os.Interrupt)
+	go func() {
+		for range sigC {
+			log.Printf("^C Caught. Shutting down ...")
+			logChan <- struct{}{}
+			os.Exit(1)
+		}
+	}()
+
+	mux := http.NewServeMux()
 	mux.HandleFunc("/", validateRequest)
 
 	server := &http.Server{
@@ -18,5 +31,8 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	log.Fatalf("%s", server.ListenAndServe())
+	log.Println("Starting up")
+	log.Printf("Listening on %s\n", server.Addr)
+
+	log.Fatalf("%s", server.ListenAndServe().Error())
 }

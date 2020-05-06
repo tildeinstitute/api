@@ -4,7 +4,31 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
+
+var logChan = make(chan struct{})
+
+func initLogging() {
+	logfile, err := os.OpenFile("api.log", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0644)
+	if err != nil {
+		log.SetOutput(os.Stderr)
+		log.Printf("Log init error: %s", err.Error())
+		return
+	}
+
+	go func(*os.File) {
+		<-logChan
+		log.Printf("Closing log file ...")
+		err := logfile.Close()
+		if err != nil {
+			log.SetOutput(os.Stderr)
+			log.Printf("Error closing log file: %s", err.Error())
+		}
+	}(logfile)
+
+	log.SetOutput(logfile)
+}
 
 // Appends a 200 OK to the request log
 func log200(r *http.Request) {

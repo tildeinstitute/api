@@ -1,0 +1,32 @@
+:: Informational API for tilde.institute ::
+
+This allows one to request information and stats via HTTP requests. The GET and
+HEAD methods are allowed. All others will receive a 405 response.
+
+Not finished. Currently planning:
+
+    FMT = /{plain|json}
+        - Plaintext or JSON formatted responses
+
+    $FMT/pkgs
+        - Installed packages
+
+    $FMT/query
+        ?pkg=[a-zA-Z0-9+]
+            - Check if a package is installed.
+
+    $FMT/users
+        - List of users (maybe CSV for plaintext?) and ancillary information
+
+    $FMT/usercount
+        - Number of registered user accounts
+
+    $FMT/uptime
+        - Uptime and Load
+
+    $FMT/version
+        - OpenBSD version
+
+I'll use some kind of fast hash as an etag.
+
+Probably going to add more endpoints.

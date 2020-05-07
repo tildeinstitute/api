@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"git.tilde.institute/tilde/api/internal/endpoints"
 )
@@ -77,8 +78,16 @@ func routingHop(r *http.Request) string {
 
 // Yeets the index/summary page to the user
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", mimePlain)
-	out := []byte("This is the tilde.institute informational API")
+	bapCache("/")
+	cache.RLock()
+	defer cache.RUnlock()
+
+	out := cache.pages["/"].raw
+	expires := cache.pages["/"].expires
+
+	w.Header().Set("Content-Type", mimePlain)
+	w.Header().Set("Expires", expires.Format(time.RFC1123))
+
 	_, err := w.Write(out)
 	if err != nil {
 		errHTTP(w, r, err, http.StatusInternalServerError)

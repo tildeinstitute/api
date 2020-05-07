@@ -8,6 +8,9 @@ Not finished. Currently planning:
     FMT = /{plain|json}
         - Plaintext or JSON formatted responses
 
+    $FMT/osversion
+        - OpenBSD version
+
     $FMT/pkgs
         - Installed packages
 
@@ -15,17 +18,15 @@ Not finished. Currently planning:
         ?pkg=[a-zA-Z0-9+]
             - Check if a package is installed.
 
-    $FMT/users
-        - List of users (maybe CSV for plaintext?) and ancillary information
+    $FMT/uptime
+        - Uptime and Load
 
     $FMT/usercount
         - Number of registered user accounts
 
-    $FMT/uptime
-        - Uptime and Load
+    $FMT/users
+        - List of users (maybe CSV for plaintext?) and ancillary information
 
-    $FMT/version
-        - OpenBSD version
 
 I'll use some kind of fast hash as an etag.
 

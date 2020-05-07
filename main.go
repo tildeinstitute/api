@@ -24,6 +24,9 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", validateRequest)
+	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "404 Not Found", http.StatusNotFound)
+	})
 
 	server := &http.Server{
 		Addr:         ":9999",

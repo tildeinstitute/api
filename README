@@ -32,7 +32,4 @@ Not finished. Currently planning:
     /$FMT/users
         - List of users (maybe CSV for plaintext?) and ancillary information
 
-
-I'll use some kind of fast hash as an etag.
-
 Probably going to add more endpoints.

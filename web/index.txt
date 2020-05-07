@@ -1,0 +1,28 @@
+This is the tilde.institute informational API
+
+Not finished. Currently planning:
+
+    /
+        - Information on endpoints and purpose
+
+    /[plain|json]
+        - Response formats
+
+    /$FMT/osversion
+        - OpenBSD version
+
+    /$FMT/pkgs
+        - Installed packages
+
+    /$FMT/query
+        ?pkg=[a-zA-Z0-9+]
+            - Check if a package is installed.
+
+    /$FMT/uptime
+        - Uptime and Load
+
+    /$FMT/usercount
+        - Number of registered user accounts
+
+    /$FMT/users
+        - List of users (maybe CSV for plaintext?) and ancillary information

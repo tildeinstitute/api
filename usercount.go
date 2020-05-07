@@ -1,4 +1,4 @@
-package endpoints // import git.tilde.institute/tilde/api/internal/endpoints
+package main
 
 import "net/http"
 

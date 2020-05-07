@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	"git.tilde.institute/tilde/api/internal/endpoints"
 )
 
 const mimePlain = "text/plain; charset=utf-8"
@@ -36,17 +34,17 @@ func validateRequest(w http.ResponseWriter, r *http.Request) {
 	var err error
 	switch routingHop(r) {
 	case "pkgs":
-		err = endpoints.Pkgs(w, r, format)
+		err = Pkgs(w, r, format)
 	case "query":
-		err = endpoints.Query(w, r, format)
+		err = Query(w, r, format)
 	case "uptime":
-		err = endpoints.Uptime(w, r, format)
+		err = Uptime(w, r, format)
 	case "usercount":
-		err = endpoints.UserCount(w, r, format)
+		err = UserCount(w, r, format)
 	case "users":
-		err = endpoints.Users(w, r, format)
+		err = Users(w, r, format)
 	case "osversion":
-		err = endpoints.OSVersion(w, r, format)
+		err = OSVersion(w, r, format)
 	default:
 		errHTTP(w, r, errors.New("Unknown endpoint"), http.StatusNotFound)
 		return

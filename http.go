@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+
+	"git.tilde.institute/tilde/api/internal/endpoints"
 )
 
 const mimePlain = "text/plain; charset=utf-8"
@@ -11,6 +13,8 @@ const mimeJSON = "application/json; charset=utf-8"
 
 // Validates the request and then sends it off to where it needs to go.
 // Eventually.
+// I chose this monolithic handler that calls validation functions to
+// determine what to do next because this will make it easier to test.
 func validateRequest(w http.ResponseWriter, r *http.Request) {
 	if !methodHop(r) {
 		errHTTP(w, r, errors.New("405 Method Not Allowed"), http.StatusMethodNotAllowed)
@@ -22,6 +26,31 @@ func validateRequest(w http.ResponseWriter, r *http.Request) {
 		errHTTP(w, r, errors.New("400 Bad Request"), http.StatusBadRequest)
 		return
 	}
+
+	var err error
+	switch routingHop(r) {
+	case "pkgs":
+		err = endpoints.Pkgs(w, r, format)
+	case "query":
+		err = endpoints.Query(w, r, format)
+	case "uptime":
+		err = endpoints.Uptime(w, r, format)
+	case "usercount":
+		err = endpoints.UserCount(w, r, format)
+	case "users":
+		err = endpoints.Users(w, r, format)
+	case "osversion":
+		err = endpoints.OSVersion(w, r, format)
+	default:
+		errHTTP(w, r, errors.New("Unknown endpoint"), http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		errHTTP(w, r, err, http.StatusBadRequest)
+		return
+	}
+	log200(r)
 }
 
 // Simple HTTP method check
@@ -29,13 +58,14 @@ func methodHop(r *http.Request) bool {
 	return r.Method == http.MethodGet || r.Method == http.MethodHead
 }
 
-// Makes sure the format requested is either plaintext or JSON
+// Yoinks the response format
 func formatHop(r *http.Request) string {
 	split := strings.Split(r.URL.Path[1:], "/")
 	return split[0]
 }
 
-// Chooses next hop based on the endpoint
-func routingHop(w http.ResponseWriter, r *http.Request, format string) {
-
+// Yoinks the endpoint
+func routingHop(r *http.Request) string {
+	split := strings.Split(r.URL.Path[1:], "/")
+	return split[1]
 }

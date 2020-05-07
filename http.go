@@ -21,6 +21,11 @@ func validateRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.URL.Path == "/" {
+		indexHandler(w, r)
+		return
+	}
+
 	format := formatHop(r)
 	if format != "plain" && format != "json" {
 		errHTTP(w, r, errors.New("400 Bad Request"), http.StatusBadRequest)
@@ -68,4 +73,16 @@ func formatHop(r *http.Request) string {
 func routingHop(r *http.Request) string {
 	split := strings.Split(r.URL.Path[1:], "/")
 	return split[1]
+}
+
+// Yeets the index/summary page to the user
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", mimePlain)
+	out := []byte("This is the tilde.institute informational API")
+	_, err := w.Write(out)
+	if err != nil {
+		errHTTP(w, r, err, http.StatusInternalServerError)
+		return
+	}
+	log200(r)
 }

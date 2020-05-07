@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"strings"
 	"sync"
 	"time"
 )
@@ -27,9 +28,22 @@ var cache = &cacheWrapper{
 // Wraps the two cache-checking functions.
 // One for /, the other for various requests.
 func (cache *cacheWrapper) bap(requestPath string) {
-	switch requestPath {
-	case "/":
+	if requestPath == "/" {
 		bapIndex()
+		return
+	}
+	split := strings.Split(requestPath[1:], "/")
+	switch split[1] {
+	case "osversion":
+		bapOSVersion(split[0])
+	case "pkgs":
+		bapPkgs(split[0])
+	case "uptime":
+		bapUptime(split[0])
+	case "usercount":
+		bapUserCount(split[0])
+	case "users":
+		bapUsers(split[0])
 	default:
 	}
 }
@@ -66,6 +80,16 @@ func bapIndex() {
 
 	cache.pages["/"] = &page{
 		raw:     bytes,
-		expires: time.Now().Add(5 * time.Minute),
+		expires: time.Now().Add(1 * time.Minute),
 	}
 }
+
+func bapOSVersion(format string) {
+
+}
+
+func bapPkgs(format string)      {}
+func bapQuery(format string)     {}
+func bapUptime(format string)    {}
+func bapUserCount(format string) {}
+func bapUsers(format string)     {}

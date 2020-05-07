@@ -24,25 +24,37 @@ var cache = &cacheWrapper{
 	pages: make(map[string]*page),
 }
 
-func bapCache(requestPath string) {
-	cache.RLock()
-	if cache.pages[requestPath] == nil {
-		cache.RUnlock()
-		cacheIndex()
-		return
-	}
-
-	expires := cache.pages[requestPath].expires
-	cache.RUnlock()
-
-	if time.Now().After(expires) {
-		cacheIndex()
+// Wraps the two cache-checking functions.
+// One for /, the other for various requests.
+func (cache *cacheWrapper) bap(requestPath string) {
+	switch requestPath {
+	case "/":
+		bapIndex()
+	default:
 	}
 }
 
-// Pulls the index page from disk and places it into the cache.
-// etag is an fnv32 hash of the raw file bytes, truncated if necessary.
-func cacheIndex() {
+// Checks if cache either has expired or has nil copy of
+// the index. If so, it yoinks the page from disk and
+// sets the expiration time.
+func bapIndex() {
+	if cache.pages["/"] == nil {
+		cache.Lock()
+		cache.pages["/"] = &page{
+			raw:     []byte{},
+			expires: time.Time{},
+		}
+		cache.Unlock()
+	}
+
+	cache.RLock()
+	expires := cache.pages["/"].expires
+	cache.RUnlock()
+
+	if time.Now().Before(expires) {
+		return
+	}
+
 	bytes, err := ioutil.ReadFile("web/index.txt")
 	if err != nil {
 		log.Printf("Could not read index page: %s", err.Error())
@@ -50,9 +62,10 @@ func cacheIndex() {
 	}
 
 	cache.Lock()
+	defer cache.Unlock()
+
 	cache.pages["/"] = &page{
 		raw:     bytes,
 		expires: time.Now().Add(5 * time.Minute),
 	}
-	cache.Unlock()
 }

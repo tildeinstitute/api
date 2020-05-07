@@ -78,7 +78,7 @@ func routingHop(r *http.Request) string {
 
 // Yeets the index/summary page to the user
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	bapCache("/")
+	cache.bap("/")
 	cache.RLock()
 	defer cache.RUnlock()
 

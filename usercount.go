@@ -20,10 +20,10 @@ func userCountQuery(format string) ([]byte, error) {
 		return []byte(fmt.Sprintf("%v users", len(split))), nil
 	}
 
-	out := fmt.Sprintf(`
-{
+	out := fmt.Sprintf(`{
 	"userCount": "%v"
-}`, len(split))
+}
+`, len(split))
 
 	return []byte(out), nil
 }

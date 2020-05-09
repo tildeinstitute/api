@@ -28,12 +28,12 @@ func uptimeQuery(format string) ([]byte, error) {
 	loadcomb := strings.Split(string(split[3]), " ")
 	loads := fmt.Sprintf("%s,%s,%s", loadcomb[1], split[3], split[4])
 
-	json := fmt.Sprintf(`
-{
+	json := fmt.Sprintf(`{
 	"time": "%s",
 	"up": "%s",
 	"load": "%s"
-}`, time, up, loads)
+}
+`, time, up, loads)
 
 	return []byte(json), nil
 }

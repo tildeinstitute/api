@@ -17,11 +17,11 @@ func osVersionQuery(format string) ([]byte, error) {
 	split := strings.Split(string(out), " ")
 
 	if format == "json" {
-		return []byte(fmt.Sprintf(`
-{
+		return []byte(fmt.Sprintf(`{
 	"os": "%s",
 	"version": "%s"
-}`, split[0], split[2])), nil
+}
+`, split[0], split[2])), nil
 	}
 
 	return []byte(fmt.Sprintf("%s %s", split[0], split[2])), nil

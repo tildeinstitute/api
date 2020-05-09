@@ -30,18 +30,15 @@ var cache = &cacheWrapper{
 
 // Checks if a page exists in the cache already.
 // If it doesn't, creates an empty entry.
-func unNullPage(path string) {
-	cache.RLock()
-	pageBlob := cache.pages[path]
-	cache.RUnlock()
+func (cache *cacheWrapper) checkedInit(path string) {
+	cache.Lock()
+	defer cache.Unlock()
 
-	if pageBlob == nil {
-		cache.Lock()
+	if cache.pages[path] == nil {
 		cache.pages[path] = &page{
 			raw:     []byte{},
 			expires: time.Time{},
 		}
-		cache.Unlock()
 	}
 }
 
@@ -65,7 +62,7 @@ func (cache *cacheWrapper) bap(requestPath string) {
 	format := split[0]
 	query := split[1]
 
-	unNullPage(requestPath)
+	cache.checkedInit(requestPath)
 
 	if cache.isFresh(requestPath) {
 		return
@@ -111,7 +108,7 @@ func (cache *cacheWrapper) yoink(path string) ([]byte, string) {
 // the index. If so, it yoinks the page from disk and
 // sets the expiration time.
 func bapIndex() {
-	unNullPage("/")
+	cache.checkedInit("/")
 
 	if cache.isFresh("/") {
 		return

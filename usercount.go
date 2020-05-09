@@ -1,10 +1,29 @@
 package main
 
-import "net/http"
+import (
+	"fmt"
+	"os/exec"
+	"strings"
+)
 
-// UserCount handles the /<format>/usercount endpoint.
-// Responds with the number of registered users on the system.
-func UserCount(w http.ResponseWriter, r *http.Request, format string) error {
+// Just returns the number of directories in /home
+// The assumption being, it's the number of human users.
+func userCountQuery(format string) ([]byte, error) {
+	ls, err := exec.Command("ls", "/home").Output()
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't execute ls: %w", err)
+	}
 
-	return nil
+	split := strings.Split(string(ls), " ")
+
+	if format == "plain" {
+		return []byte(fmt.Sprintf("%v users", len(split))), nil
+	}
+
+	out := fmt.Sprintf(`
+{
+	"userCount": "%v"
+}`, len(split))
+
+	return []byte(out), nil
 }

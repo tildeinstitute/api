@@ -78,6 +78,8 @@ func (cache *cacheWrapper) bap(requestPath string) {
 		bytes, err = osVersionQuery(format)
 	case "uptime":
 		bytes, err = uptimeQuery(format)
+	case "usercount":
+		bytes, err = userCountQuery(format)
 	}
 
 	if err != nil {

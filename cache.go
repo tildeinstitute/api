@@ -53,14 +53,14 @@ func (cache *cacheWrapper) isFresh(path string) bool {
 // Wraps the two cache-checking functions.
 // One for /, the other for various requests.
 func (cache *cacheWrapper) bap(requestPath string) {
-	if requestPath == "/" {
-		bapIndex()
-		return
-	}
+	var split []string
+	var format, query string
 
-	split := strings.Split(requestPath[1:], "/")
-	format := split[0]
-	query := split[1]
+	if requestPath != "/" {
+		split = strings.Split(requestPath[1:], "/")
+		format = split[0]
+		query = split[1]
+	}
 
 	cache.checkedInit(requestPath)
 
@@ -79,11 +79,15 @@ func (cache *cacheWrapper) bap(requestPath string) {
 	case "usercount":
 		bytes, err = userCountQuery(format)
 	default:
-		err = errors.New("Invalid Query Type")
+		if requestPath == "/" {
+			bytes, err = ioutil.ReadFile("web/index.txt")
+		} else {
+			err = errors.New("Invalid Query Type")
+		}
 	}
 
 	if err != nil {
-		log.Printf("Could not query %s: %s", requestPath, err.Error())
+		log.Printf("Request error %s :: %s", requestPath, err.Error())
 		bytes = []byte("Internal Error")
 	}
 
@@ -102,29 +106,4 @@ func (cache *cacheWrapper) yoink(path string) ([]byte, string) {
 	defer cache.RUnlock()
 
 	return cache.pages[path].raw, cache.pages[path].expires.Format(time.RFC1123)
-}
-
-// Checks if cache either has expired or has nil copy of
-// the index. If so, it yoinks the page from disk and
-// sets the expiration time.
-func bapIndex() {
-	cache.checkedInit("/")
-
-	if cache.isFresh("/") {
-		return
-	}
-
-	bytes, err := ioutil.ReadFile("web/index.txt")
-	if err != nil {
-		log.Printf("Could not read index page: %s", err.Error())
-		bytes = []byte("tilde.institute informational API")
-	}
-
-	cache.Lock()
-	defer cache.Unlock()
-
-	cache.pages["/"] = &page{
-		raw:     bytes,
-		expires: time.Now().Add(cacheDuration),
-	}
 }

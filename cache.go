@@ -59,19 +59,38 @@ func (cache *cacheWrapper) bap(requestPath string) {
 		bapIndex()
 		return
 	}
+
 	split := strings.Split(requestPath[1:], "/")
-	switch split[1] {
+	format := split[0]
+	query := split[1]
+
+	unNullPage(requestPath)
+
+	if cache.isFresh(requestPath) {
+		return
+	}
+
+	var bytes []byte
+	var err error
+
+	switch query {
 	case "osversion":
-		bapOSVersion(split[0])
-	case "pkgs":
-		bapPkgs(split[0])
+		bytes, err = osVersionQuery(format)
 	case "uptime":
-		bapUptime(split[0])
-	case "usercount":
-		bapUserCount(split[0])
-	case "users":
-		bapUsers(split[0])
-	default:
+		bytes, err = uptimeQuery(format)
+	}
+
+	if err != nil {
+		log.Printf("Could not query %s: %s", requestPath, err.Error())
+		bytes = []byte("Internal Error")
+	}
+
+	cache.Lock()
+	defer cache.Unlock()
+
+	cache.pages[requestPath] = &page{
+		raw:     bytes,
+		expires: time.Now().Add(cacheDuration),
 	}
 }
 
@@ -118,6 +137,5 @@ func bapIndex() {
 
 func bapPkgs(format string)      {}
 func bapQuery(format string)     {}
-func bapUptime(format string)    {}
 func bapUserCount(format string) {}
 func bapUsers(format string)     {}

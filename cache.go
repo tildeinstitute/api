@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -80,6 +81,8 @@ func (cache *cacheWrapper) bap(requestPath string) {
 		bytes, err = uptimeQuery(format)
 	case "usercount":
 		bytes, err = userCountQuery(format)
+	default:
+		err = errors.New("Invalid Query Type")
 	}
 
 	if err != nil {
@@ -96,20 +99,12 @@ func (cache *cacheWrapper) bap(requestPath string) {
 	}
 }
 
-// yoinks the raw data to send to the requester
-func (cache *cacheWrapper) yoink(path string) []byte {
+// yoinks the raw data and expiry time to send to the requester
+func (cache *cacheWrapper) yoink(path string) ([]byte, string) {
 	cache.RLock()
 	defer cache.RUnlock()
 
-	return cache.pages[path].raw
-}
-
-// yoinks the expiration for the cache
-func (cache *cacheWrapper) expiresWhen(path string) string {
-	cache.RLock()
-	defer cache.RUnlock()
-
-	return cache.pages[path].expires.Format(time.RFC1123)
+	return cache.pages[path].raw, cache.pages[path].expires.Format(time.RFC1123)
 }
 
 // Checks if cache either has expired or has nil copy of

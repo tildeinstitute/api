@@ -9,10 +9,7 @@ import (
 const mimePlain = "text/plain; charset=utf-8"
 const mimeJSON = "application/json; charset=utf-8"
 
-// Validates the request and then sends it off to where it needs to go.
-// Eventually.
-// I chose this monolithic handler that calls validation functions to
-// determine what to do next because this will make it easier to test.
+// Validates the request and then queries the cache for the response.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if !methodHop(r) {
 		errHTTP(w, r, errors.New("405 Method Not Allowed"), http.StatusMethodNotAllowed)
@@ -26,7 +23,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cache.bap(r.URL.Path)
-	out := cache.yoink(r.URL.Path)
+	out, expires := cache.yoink(r.URL.Path)
 
 	if format == "json" {
 		w.Header().Set("Content-Type", mimeJSON)
@@ -34,7 +31,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", mimePlain)
 	}
 
-	w.Header().Set("Expires", cache.expiresWhen(r.URL.Path))
+	w.Header().Set("Expires", expires)
 
 	_, err := w.Write(out)
 	if err != nil {

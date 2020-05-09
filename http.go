@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-	"time"
 )
 
 const mimePlain = "text/plain; charset=utf-8"
@@ -20,13 +19,8 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.URL.Path == "/" {
-		indexHandler(w, r)
-		return
-	}
-
 	format := formatHop(r)
-	if format != "plain" && format != "json" {
+	if format != "plain" && format != "json" && r.URL.Path != "/" {
 		errHTTP(w, r, errors.New("400 Bad Request"), http.StatusBadRequest)
 		return
 	}
@@ -57,6 +51,10 @@ func methodHop(r *http.Request) bool {
 
 // Yoinks the response format
 func formatHop(r *http.Request) string {
+	if r.URL.Path == "/" {
+		return ""
+	}
+
 	split := strings.Split(r.URL.Path[1:], "/")
 	return split[0]
 }
@@ -65,24 +63,4 @@ func formatHop(r *http.Request) string {
 func routingHop(r *http.Request) string {
 	split := strings.Split(r.URL.Path[1:], "/")
 	return split[1]
-}
-
-// Yeets the index/summary page to the user
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	cache.bap("/")
-	cache.RLock()
-	defer cache.RUnlock()
-
-	out := cache.pages["/"].raw
-	expires := cache.pages["/"].expires
-
-	w.Header().Set("Content-Type", mimePlain)
-	w.Header().Set("Expires", expires.Format(time.RFC1123))
-
-	_, err := w.Write(out)
-	if err != nil {
-		errHTTP(w, r, err, http.StatusInternalServerError)
-		return
-	}
-	log200(r)
 }

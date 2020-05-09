@@ -41,6 +41,17 @@ func (cache *cacheWrapper) checkedInit(path string) {
 	}
 }
 
+// Adds a given page to the cache with path as the key
+func (cache *cacheWrapper) insert(path string, raw []byte) {
+	cache.Lock()
+	defer cache.Unlock()
+
+	cache.pages[path] = &page{
+		raw:     raw,
+		expires: time.Now().Add(cacheDuration),
+	}
+}
+
 // Returns true if the cached page is good.
 // False if it's stale.
 func (cache *cacheWrapper) isFresh(path string) bool {
@@ -52,19 +63,18 @@ func (cache *cacheWrapper) isFresh(path string) bool {
 // Wraps the two cache-checking functions.
 // One for /, the other for various requests.
 func (cache *cacheWrapper) bap(requestPath string) error {
-	var split []string
-	var format, query string
-
-	if requestPath != "/" {
-		split = strings.Split(requestPath[1:], "/")
-		format = split[0]
-		query = split[1]
-	}
-
 	cache.checkedInit(requestPath)
 
 	if cache.isFresh(requestPath) {
 		return nil
+	}
+
+	var format, query string
+
+	if requestPath != "/" {
+		split := strings.Split(requestPath[1:], "/")
+		format = split[0]
+		query = split[1]
 	}
 
 	var bytes []byte
@@ -89,14 +99,7 @@ func (cache *cacheWrapper) bap(requestPath string) error {
 		return err
 	}
 
-	cache.Lock()
-	defer cache.Unlock()
-
-	cache.pages[requestPath] = &page{
-		raw:     bytes,
-		expires: time.Now().Add(cacheDuration),
-	}
-
+	cache.insert(requestPath, bytes)
 	return nil
 }
 

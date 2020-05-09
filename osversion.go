@@ -1,10 +1,29 @@
 package main
 
-import "net/http"
+import (
+	"errors"
+	"fmt"
+	"os/exec"
+	"strings"
+)
 
-// OSVersion handles the /<format>/osversion endpoint.
+// osVersionQuery handles the /<format>/osversion endpoint.
 // Responds with the OpenBSD version.
-func OSVersion(w http.ResponseWriter, r *http.Request, format string) error {
+func osVersionQuery(format string) ([]byte, error) {
+	out, err := exec.Command("/usr/bin/uname", "-a").Output()
+	if err != nil {
+		return nil, errors.New("Couldn't exec `uname -a`")
+	}
 
-	return nil
+	split := strings.Split(string(out), " ")
+
+	if format == "json" {
+		return []byte(fmt.Sprintf(`
+{
+	"os": "%s",
+	"version": "%s"
+}`, split[0], split[2])), nil
+	}
+
+	return []byte(fmt.Sprintf("%s %s", split[0], split[2])), nil
 }

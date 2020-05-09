@@ -14,7 +14,7 @@ const mimeJSON = "application/json; charset=utf-8"
 // Eventually.
 // I chose this monolithic handler that calls validation functions to
 // determine what to do next because this will make it easier to test.
-func validateRequest(w http.ResponseWriter, r *http.Request) {
+func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if !methodHop(r) {
 		errHTTP(w, r, errors.New("405 Method Not Allowed"), http.StatusMethodNotAllowed)
 		return
@@ -31,25 +31,18 @@ func validateRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err error
-	switch routingHop(r) {
-	case "pkgs":
-		err = Pkgs(w, r, format)
-	case "query":
-		err = Query(w, r, format)
-	case "uptime":
-		err = Uptime(w, r, format)
-	case "usercount":
-		err = UserCount(w, r, format)
-	case "users":
-		err = Users(w, r, format)
-	case "osversion":
-		err = OSVersion(w, r, format)
-	default:
-		errHTTP(w, r, errors.New("Unknown endpoint"), http.StatusNotFound)
-		return
+	cache.bap(r.URL.Path)
+	out := cache.yoink(r.URL.Path)
+
+	if format == "json" {
+		w.Header().Set("Content-Type", mimeJSON)
+	} else {
+		w.Header().Set("Content-Type", mimePlain)
 	}
 
+	w.Header().Set("Expires", cache.expiresWhen(r.URL.Path))
+
+	_, err := w.Write(out)
 	if err != nil {
 		errHTTP(w, r, err, http.StatusBadRequest)
 		return

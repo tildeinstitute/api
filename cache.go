@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
 	"sync"
 	"time"
 )
+
+const cacheDuration = 1 * time.Minute
 
 // Holds the cached responses
 type page struct {
@@ -23,6 +26,31 @@ type cacheWrapper struct {
 // The actual page/response cache
 var cache = &cacheWrapper{
 	pages: make(map[string]*page),
+}
+
+// Checks if a page exists in the cache already.
+// If it doesn't, creates an empty entry.
+func unNullPage(path string) {
+	cache.RLock()
+	pageBlob := cache.pages[path]
+	cache.RUnlock()
+
+	if pageBlob == nil {
+		cache.Lock()
+		cache.pages[path] = &page{
+			raw:     []byte{},
+			expires: time.Time{},
+		}
+		cache.Unlock()
+	}
+}
+
+// Returns true if the cached page is good.
+// False if it's stale.
+func (cache *cacheWrapper) isFresh(path string) bool {
+	cache.RLock()
+	defer cache.RUnlock()
+	return time.Now().Before(cache.pages[path].expires)
 }
 
 // Wraps the two cache-checking functions.
@@ -48,24 +76,29 @@ func (cache *cacheWrapper) bap(requestPath string) {
 	}
 }
 
+// yoinks the raw data to send to the requester
+func (cache *cacheWrapper) yoink(path string) []byte {
+	cache.RLock()
+	defer cache.RUnlock()
+
+	return cache.pages[path].raw
+}
+
+// yoinks the expiration for the cache
+func (cache *cacheWrapper) expiresWhen(path string) string {
+	cache.RLock()
+	defer cache.RUnlock()
+
+	return cache.pages[path].expires.Format(time.RFC1123)
+}
+
 // Checks if cache either has expired or has nil copy of
 // the index. If so, it yoinks the page from disk and
 // sets the expiration time.
 func bapIndex() {
-	if cache.pages["/"] == nil {
-		cache.Lock()
-		cache.pages["/"] = &page{
-			raw:     []byte{},
-			expires: time.Time{},
-		}
-		cache.Unlock()
-	}
+	unNullPage("/")
 
-	cache.RLock()
-	expires := cache.pages["/"].expires
-	cache.RUnlock()
-
-	if time.Now().Before(expires) {
+	if cache.isFresh("/") {
 		return
 	}
 
@@ -80,12 +113,31 @@ func bapIndex() {
 
 	cache.pages["/"] = &page{
 		raw:     bytes,
-		expires: time.Now().Add(1 * time.Minute),
+		expires: time.Now().Add(cacheDuration),
 	}
 }
 
 func bapOSVersion(format string) {
+	path := fmt.Sprintf("/%s/osversion", format)
+	unNullPage(path)
 
+	if cache.isFresh(path) {
+		return
+	}
+
+	bytes, err := osVersionQuery(format)
+	if err != nil {
+		log.Printf("Could not query OS version: %s", err.Error())
+		bytes = []byte("Internal Error")
+	}
+
+	cache.Lock()
+	defer cache.Unlock()
+
+	cache.pages[path] = &page{
+		raw:     bytes,
+		expires: time.Now().Add(cacheDuration),
+	}
 }
 
 func bapPkgs(format string)      {}

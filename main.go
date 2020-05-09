@@ -23,7 +23,7 @@ func main() {
 	}(logChan)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", validateRequest)
+	mux.HandleFunc("/", mainHandler)
 	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "404 Not Found", http.StatusNotFound)
 	})

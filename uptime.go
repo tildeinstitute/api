@@ -7,6 +7,7 @@ import (
 )
 
 // executes uptime and responds with a []byte{}
+// TODO: account for uptimes <1d and >1d
 func uptimeQuery(format string) ([]byte, error) {
 	out, err := exec.Command("/usr/bin/uptime").Output()
 	if err != nil {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -112,29 +111,6 @@ func bapIndex() {
 	defer cache.Unlock()
 
 	cache.pages["/"] = &page{
-		raw:     bytes,
-		expires: time.Now().Add(cacheDuration),
-	}
-}
-
-func bapOSVersion(format string) {
-	path := fmt.Sprintf("/%s/osversion", format)
-	unNullPage(path)
-
-	if cache.isFresh(path) {
-		return
-	}
-
-	bytes, err := osVersionQuery(format)
-	if err != nil {
-		log.Printf("Could not query OS version: %s", err.Error())
-		bytes = []byte("Internal Error")
-	}
-
-	cache.Lock()
-	defer cache.Unlock()
-
-	cache.pages[path] = &page{
 		raw:     bytes,
 		expires: time.Now().Add(cacheDuration),
 	}

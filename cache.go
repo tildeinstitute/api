@@ -136,8 +136,3 @@ func bapIndex() {
 		expires: time.Now().Add(cacheDuration),
 	}
 }
-
-func bapPkgs(format string)      {}
-func bapQuery(format string)     {}
-func bapUserCount(format string) {}
-func bapUsers(format string)     {}

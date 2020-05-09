@@ -22,8 +22,11 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cache.bap(r.URL.Path)
-	out, expires := cache.yoink(r.URL.Path)
+	err := cache.bap(r.URL.Path)
+	if err != nil {
+		errHTTP(w, r, err, http.StatusInternalServerError)
+		return
+	}
 
 	if format == "json" {
 		w.Header().Set("Content-Type", mimeJSON)
@@ -31,9 +34,10 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", mimePlain)
 	}
 
+	out, expires := cache.yoink(r.URL.Path)
 	w.Header().Set("Expires", expires)
 
-	_, err := w.Write(out)
+	_, err = w.Write(out)
 	if err != nil {
 		errHTTP(w, r, err, http.StatusBadRequest)
 		return

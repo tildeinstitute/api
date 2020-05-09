@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"io/ioutil"
-	"log"
 	"strings"
 	"sync"
 	"time"
@@ -52,7 +51,7 @@ func (cache *cacheWrapper) isFresh(path string) bool {
 
 // Wraps the two cache-checking functions.
 // One for /, the other for various requests.
-func (cache *cacheWrapper) bap(requestPath string) {
+func (cache *cacheWrapper) bap(requestPath string) error {
 	var split []string
 	var format, query string
 
@@ -65,7 +64,7 @@ func (cache *cacheWrapper) bap(requestPath string) {
 	cache.checkedInit(requestPath)
 
 	if cache.isFresh(requestPath) {
-		return
+		return nil
 	}
 
 	var bytes []byte
@@ -87,8 +86,7 @@ func (cache *cacheWrapper) bap(requestPath string) {
 	}
 
 	if err != nil {
-		log.Printf("Request error %s :: %s", requestPath, err.Error())
-		bytes = []byte("Internal Error")
+		return err
 	}
 
 	cache.Lock()
@@ -98,6 +96,8 @@ func (cache *cacheWrapper) bap(requestPath string) {
 		raw:     bytes,
 		expires: time.Now().Add(cacheDuration),
 	}
+
+	return nil
 }
 
 // yoinks the raw data and expiry time to send to the requester

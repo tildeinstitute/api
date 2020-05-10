@@ -87,6 +87,8 @@ func (cache *cacheWrapper) bap(requestPath string) error {
 		bytes, err = uptimeQuery(format)
 	case "usercount":
 		bytes, err = userCountQuery(format)
+	case "pkgs":
+		bytes, err = pkgsQuery(format)
 	default:
 		if requestPath == "/" {
 			bytes, err = ioutil.ReadFile("web/index.txt")

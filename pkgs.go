@@ -1,10 +1,40 @@
 package main
 
-import "net/http"
+import (
+	"fmt"
+	"os/exec"
+	"strings"
+)
 
-// Pkgs handles the /<format>/pkgs endpoint.
-// Sends a list of installed packages.
-func Pkgs(w http.ResponseWriter, r *http.Request, format string) error {
+// Returns a list of packages installed on the system
+func pkgsQuery(format string) ([]byte, error) {
+	raw, err := exec.Command("pkg_info", "-a").Output()
+	if err != nil {
+		return nil, err
+	}
 
-	return nil
+	if format == "plain" {
+		return raw, nil
+	}
+
+	json := `{
+	"packages": [`
+	rawlines := strings.Split(string(raw), "\n")
+	for _, line := range rawlines {
+		split := strings.Fields(line)
+		if len(split) < 2 {
+			continue
+		}
+		desc := strings.Join(split[1:], " ")
+		json = fmt.Sprintf(`%s
+		{
+			"package": "%s",
+			"description": "%s"
+		},`, json, split[0], desc)
+	}
+	json = fmt.Sprintf(`%s
+	]
+}
+`, json[:len(json)-1])
+	return []byte(json), nil
 }

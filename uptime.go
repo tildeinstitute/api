@@ -17,7 +17,7 @@ func uptimeQuery(format string) ([]byte, error) {
 	split := strings.Split(string(out), ",")
 
 	if format == "plain" {
-		cut := fmt.Sprintf("%s,%s,%s,%s", split[0], split[1], split[3], split[4])
+		cut := fmt.Sprintf("%s,%s,%s,%s\n", split[0], split[1], split[3], split[4])
 		return []byte(cut), nil
 	}
 

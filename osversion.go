@@ -24,5 +24,5 @@ func osVersionQuery(format string) ([]byte, error) {
 `, split[0], split[2])), nil
 	}
 
-	return []byte(fmt.Sprintf("%s %s", split[0], split[2])), nil
+	return []byte(fmt.Sprintf("%s %s\n", split[0], split[2])), nil
 }

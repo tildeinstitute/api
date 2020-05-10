@@ -17,7 +17,7 @@ func userCountQuery(format string) ([]byte, error) {
 	split := strings.Fields(string(ls))
 
 	if format == "plain" {
-		return []byte(fmt.Sprintf("%v users", len(split))), nil
+		return []byte(fmt.Sprintf("%v users\n", len(split))), nil
 	}
 
 	out := fmt.Sprintf(`{

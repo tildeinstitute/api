@@ -15,6 +15,20 @@ func usersQuery(format string) ([]byte, error) {
 	}
 
 	users := strings.Fields(string(ls))
+
+	if format == "plain" {
+		var out []string
+		for _, e := range users {
+			if strings.HasPrefix(e, ".") || strings.HasPrefix(e, "_") {
+				continue
+			}
+			out = append(out, e)
+		}
+		outstring := strings.Join(out, "\n")
+		outstring += "\n"
+		return []byte(outstring), nil
+	}
+
 	out := `{
 	"users": [
 `

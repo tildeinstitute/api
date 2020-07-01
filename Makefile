@@ -9,24 +9,17 @@ api: main.go go.mod
 
 .PHONY: clean
 clean:
-	@printf "\n%s\n\n" "Cleaning build and module caches..."
+	@printf "\n%s\n\n" "Cleaning build artifacts..."
 	go clean
-	go clean -cache -modcache
-	@printf "\n%s\n\n" "...Done!"
-
-.PHONY: update
-update:
-	@printf "\n%s\n\n" "Updating from upstream repository..."
-	git pull --rebase origin master
 	@printf "\n%s\n\n" "...Done!"
 
 .PHONY: install
 install:
 	@printf "\n%s\n\n%s\n" "Installing ..." "Creating Directories ..."
-	mkdir -p $(BINDIR)/web
+	mkdir -p $(BINDIR)/static
 	@printf "\n%s\n" "Copying files..."
 	install -m755 api $(BINDIR)
-	install -m644 web/* $(BINDIR)
+	install -m644 static/* $(BINDIR)
 	@printf "\n%s\n" "Setting ownership..."
 	chown -R www:www $(BINDIR)
 	@printf "\n%s\n\n" "...Done!"

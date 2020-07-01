@@ -93,7 +93,7 @@ func (cache *cacheWrapper) bap(requestPath string) error {
 		bytes, err = pkgsQuery(format)
 	default:
 		if requestPath == "/" {
-			bytes, err = ioutil.ReadFile("web/index.txt")
+			bytes, err = ioutil.ReadFile("static/index.txt")
 		} else {
 			err = errors.New("Invalid Query Type")
 		}
